@@ -725,6 +725,13 @@ input[type=range] { accent-color: var(--ink); }
 .xp.home .xp-segs i.on { background: var(--c); }
 .xp.home .xp-segs i.new { background: var(--paper); }
 .xp.home .xp-t { font-size: 14.5px; }
+.section-h .reset { font-family: var(--font-display); font-weight: 700; font-size: 14.5px; color: var(--muted); }
+.section-h .reset[aria-expanded="true"] { color: var(--ink); }
+.resetq { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 14px 0 0; padding: 12px 14px; background: var(--soft); border-radius: 14px; }
+.resetq p { margin: 0; flex: 1 1 220px; font-size: 15px; line-height: 1.3; }
+.resetq .btns { display: flex; gap: 8px; }
+.resetq button { font: inherit; font-weight: 800; font-size: 14.5px; padding: 8px 15px; border-radius: 999px; border: 2.5px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; }
+.resetq button.yes { background: var(--ink); color: var(--paper); }
 .tile .done { top: 10px; right: 10px; width: 42px; height: 42px; padding: 0; border-radius: 50%; border: 3px solid var(--paper); background: var(--ink); color: var(--paper); display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.28); }
 .tile .done.new { opacity: 0; }
 .tile .done.new.go { animation: sealin .5s .1s cubic-bezier(.3,.7,.3,1) both; }
@@ -3144,6 +3151,14 @@ try { (JSON.parse(localStorage.getItem("dkus-done") || "[]")).forEach(x => DONE.
 const FRESH = new Set();
 const sealSVG = id => '<svg viewBox="0 0 100 100"><defs><path id="seal-' + id + '" d="M19.5 50a30.5 30.5 0 1 1 61 0a30.5 30.5 0 1 1-61 0"/></defs><circle class="rg" cx="50" cy="50" r="46.5" stroke-width="3.2"/><circle class="rg" cx="50" cy="50" r="42.3" stroke-width="1.2"/><circle class="rg" cx="50" cy="50" r="25" stroke-width="2.2"/><text class="st"><textPath href="#seal-' + id + '" textLength="186" lengthAdjust="spacing">EXPLORED • EXPLORED •</textPath></text><path class="ck" d="M38.5 50.5l8 8L62.5 42"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function resetAll() {
+  DONE.clear(); FRESH.clear(); best = null;
+  state.revealed = {}; state.guesses = {}; state.quiz = null; state.theme = null; state.idx = 0;
+  try { localStorage.removeItem("dkus-done"); localStorage.removeItem("dkus-best2"); } catch (e) {}
+  SND.play("swipe");
+  home();
+  window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+}
 function markDone(id) { if (DONE.has(id)) return false; DONE.add(id); FRESH.add(id); try { localStorage.setItem("dkus-done", JSON.stringify([...DONE])); } catch (e) {} return true; }
 
 function home() {
@@ -3166,7 +3181,7 @@ function home() {
         ${nDone ? "" : `<button class="primary hero-go" data-go="${ready[0].id}">Start with ${ready[0].name.toLowerCase()} →</button>`}
       </div>
     </section>
-    <div class="section-h"><h2>Explore</h2></div>
+    <div class="section-h"><h2>Explore</h2>${nDone || best ? `<button class="linkbtn reset" data-reset aria-expanded="false">Start over</button>` : ""}</div>
     <div class="xp home" role="img" aria-label="${nDone} of ${ready.length} themes explored"><span class="xp-segs">${ready.map(t => `<i class="${DONE.has(t.id) ? "on" : ""}${FRESH.has(t.id) && !reduceMotion ? " new" : ""}" style="--c:${t.color}"></i>`).join("")}</span><span class="xp-t">${nDone === ready.length ? `All ${ready.length} explored. Ready for the quiz?` : nDone ? `${nDone} of ${ready.length} explored` : `${ready.length} themes to explore`}</span></div>
     <div class="tiles">
       ${ready.map((t, k) => `<button class="tile ph${DONE.has(t.id) ? " isdone" : ""}" style="--tc:${t.color};--pos:${t.pos || "50% 50%"}" data-go="${t.id}"${DONE.has(t.id) ? ` aria-label="${t.name}, explored"` : ""}>
@@ -3183,6 +3198,19 @@ function home() {
     <footer class="foot"><span>Data checked ${CHECKED}. Every figure links to its source.</span><button class="linkbtn" data-go="sources">All sources and photo credits</button></footer>
   </div>`;
   app.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+  const rb = app.querySelector("[data-reset]");
+  if (rb) rb.addEventListener("click", () => {
+    const open = app.querySelector(".resetq");
+    if (open) { open.remove(); rb.setAttribute("aria-expanded", "false"); return; }
+    rb.setAttribute("aria-expanded", "true");
+    const q = document.createElement("div");
+    q.className = "resetq"; q.setAttribute("role", "group"); q.setAttribute("aria-label", "Start over");
+    q.innerHTML = `<p>Remove your “Explored” stamps${best ? " and your best quiz score" : ""}?</p><span class="btns"><button class="yes" data-reset-yes>Start over</button><button class="no">Cancel</button></span>`;
+    app.querySelector(".xp.home").after(q);
+    q.querySelector(".no").addEventListener("click", () => { q.remove(); rb.setAttribute("aria-expanded", "false"); rb.focus(); });
+    q.querySelector(".yes").addEventListener("click", resetAll);
+    q.querySelector(".yes").focus({ preventScroll: true });
+  });
   const fresh = app.querySelectorAll(".tile .done.new, .xp.home i.new");
   if (fresh.length) {
     let rang = false;
@@ -3404,7 +3432,7 @@ function quizEnd() {
 ["pointerdown", "touchstart", "keydown", "pointerup", "touchend"].forEach(ev => document.addEventListener(ev, () => SND.warm(), { capture: true, passive: true }));
 document.addEventListener("visibilitychange", () => { if (document.hidden) SND.sleep(); else SND.warm(); });
 (window.requestIdleCallback || (f => setTimeout(f, 300)))(() => SND.preinit(), { timeout: 1500 });
-const EXPLICIT = "[data-next],[data-prev],[data-pip],[data-pick],[data-reveal],[data-opt],[data-qnext],.snd,.guess .primary";
+const EXPLICIT = "[data-next],[data-prev],[data-pip],[data-pick],[data-reveal],[data-opt],[data-qnext],[data-reset-yes],.snd,.guess .primary";
 const uiSnd = (e, early) => {
   if (e.target.closest(".snd")) return;
   const el = e.target.closest("button, .tmap rect, .swarm circle, .scatter .hs, .ladder .hit, .pyr .hitrow, .hemi circle, .dpchart .ehit, .abchart .abrow, .waffle i, .szmap path"); if (!el || el.disabled) return;
@@ -3413,7 +3441,7 @@ const uiSnd = (e, early) => {
   if (el.matches(".tile")) return SND.play("flip");
   if (el.matches(".chip, .seg button, .pty, .chipbtn[aria-pressed]")) return SND.play("toggle");
   if (el.matches(".ghostbtn, .primary, .tbtn, .clip-go")) return el.matches(".tbtn, .clip-go") ? null : SND.play("tap");
-  if (el.matches(".chipbtn, .back, .linkbtn, .navbtn")) return SND.play("soft");
+  if (el.matches(".chipbtn, .back, .linkbtn, .navbtn, .resetq button")) return SND.play("soft");
   if (el.tagName !== "BUTTON") return SND.play("tap");
 };
 document.addEventListener("pointerdown", e => { if (e.button === 0 && e.pointerType !== "touch") uiSnd(e, true); }, true);
