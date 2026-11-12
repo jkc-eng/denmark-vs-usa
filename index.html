@@ -375,7 +375,12 @@ input[type=range].scrub { width: 100%; accent-color: var(--ink); height: 28px; }
 .chart .lab, .scatter .mylab, .scatter .axl { paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
 .scatter text { font-size: 13px; }
 .scatter .axl { font-size: 13px; }
-.inrow-dk .ppl { max-width: 200px; }
+/* two 100-people grids side by side: same size, top-aligned, headings of equal height so the grids line up */
+.two.ppl2 { align-items: start; }
+.two.ppl2 > .row { align-content: start; }
+.two.ppl2 > .row > * { align-self: start; }
+.two > .row { grid-template-columns: minmax(0, 1fr); } /* a column can never grow past its half (turnout grids were 171 vs 165 px on phones) */
+@media (min-width: 640px) { .two.ppl2 { grid-template-rows: auto auto auto; row-gap: 8px; } .two.ppl2 > .row { grid-row: span 3; grid-template-rows: subgrid; } }
 
 /* Society */
 .cells { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; max-width: 520px; }
@@ -1430,9 +1435,9 @@ const ORIGIN_DK = [
 ];
 function raceViz() {
   return `
-    <div class="two">
-      <div class="row"><span class="cname">100 Americans, as the U.S. Census Bureau counts them</span>${pplGrid("rc-us", RACE_US, "100 people grouped by race and Hispanic origin")}${legend(RACE_US)}</div>
+    <div class="two ppl2">
       <div class="row"><span class="cname">100 people in Denmark, as Statistics Denmark counts them</span>${pplGrid("rc-dk", ORIGIN_DK, "100 people grouped by origin")}${legend(ORIGIN_DK)}</div>
+      <div class="row"><span class="cname">100 Americans, as the U.S. Census Bureau counts them</span>${pplGrid("rc-us", RACE_US, "100 people grouped by race and Hispanic origin")}${legend(RACE_US)}</div>
     </div>
     <div class="stage-foot"><button class="ghostbtn" id="rc-sort">Sort them into groups</button><span class="sub">U.S. 2024; Denmark October 1, 2026.</span></div>`;
 }
@@ -2145,9 +2150,9 @@ const INS_SCEN = {
 };
 function insViz() {
   return `
-    <div class="two">
-      <div class="row"><span class="cname">100 Americans: where their health insurance comes from</span>${pplGrid("in-us", INS_US, "100 Americans grouped by type of health insurance")}${legend(INS_US)}</div>
-      <div class="row inrow-dk"><span class="cname">100 Danes</span>${pplGrid("in-dk", INS_DK, "100 Danes, all covered by the public health system")}${legend(INS_DK)}</div>
+    <div class="two ppl2">
+      <div class="row"><span class="cname">100 Danes</span>${pplGrid("in-dk", INS_DK, "100 Danes, all covered by the public health system")}${legend(INS_DK)}</div>
+      <div class="row"><span class="cname">100 Americans</span>${pplGrid("in-us", INS_US, "100 Americans grouped by type of health insurance")}${legend(INS_US)}</div>
     </div>
     <div class="row" style="gap:10px"><span class="label">What happens if…</span>
       <div class="chips">${Object.entries(INS_SCEN).map(([k, s]) => `<button class="chip" data-scen="${k}">${s.l}</button>`).join("")}</div>
