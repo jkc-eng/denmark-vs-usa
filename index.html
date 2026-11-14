@@ -547,6 +547,29 @@ input[type=range].scrub { width: 100%; accent-color: var(--ink); height: 28px; }
 .big .unit { font-size: .36em; letter-spacing: 0; font-weight: 700; margin-left: 4px; }
 .big.dk .unit { color: var(--dk-text); }
 svg.chart text.tk-off { visibility: hidden; }
+/* v27: What you thought */
+.wyt-go { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; width: 100%; margin-top: 18px; padding: 16px 18px; border: 3px solid var(--ink); border-radius: 18px; background: var(--paper); box-shadow: 5px 5px 0 var(--ink); }
+.wyt-go .h3 { font-weight: 800; font-size: 21px; letter-spacing: -.01em; }
+.wyt-go .p { grid-column: 1; font-size: 14.5px; }
+.wyt-go .go { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-weight: 800; font-size: 20px; }
+.wyt-go:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.wytl li { gap: 6px; }
+.wyt-q { font-weight: 800; font-size: 15.5px; line-height: 1.25; display: flex; gap: 8px; align-items: baseline; }
+.wyt-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--tc); border: 2px solid var(--ink); box-sizing: border-box; transform: translateY(1px); display: inline-block; }
+.wyt-ya { font-size: 14.5px; }
+.wyt-scale { position: relative; height: 22px; margin: 2px 6px 0; }
+.wyt-track { position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: var(--line, #D8D4CA); }
+.wyt-real, .wyt-you { position: absolute; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; box-sizing: border-box; }
+.wyt-real { background: var(--ink); }
+.wyt-you { border: 3px solid var(--dk-text); background: transparent; }
+.wyt-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.wyt-opts span { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1.5px solid #CFCAC0; color: var(--muted); }
+.wyt-opts span.real { border-color: var(--ink); color: var(--ink); font-weight: 700; background: #EFEDE6; }
+.wyt-opts span.you:not(.real) { border: 2px solid var(--dk-text); color: var(--dk-text); font-weight: 700; }
+.wyt-opts span.you.real { box-shadow: inset 0 0 0 1px var(--ink); }
+.wyt-todo { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.wyt-todo .linkbtn { display: flex; gap: 8px; align-items: baseline; text-align: left; font-weight: 600; font-size: 15px; text-decoration: none; }
+.wyt-todo .linkbtn span:first-of-type { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 /* v26: quiz coverage strip (one mark per question: filled = correct last time, crossed = missed last time) */
 .qcover { display: flex; flex-wrap: wrap; gap: 5px; margin: -6px 0 -8px; max-width: 520px; }
 .qcover i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); box-sizing: border-box; }
@@ -1149,6 +1172,7 @@ CARDS.everyday = [
     },
     {
       id: "houses",
+      guess: { type: "choice", q: "Guess first: out of 100 Americans, how many live in a house?", opts: ["About 50", "About 75", "About 90", "Almost all"], answer: 1, hint: "In Denmark, about 65 in 100 people do." },
       q: "How many people live in a house?",
       viz: () => `
         <div style="display:flex;flex-wrap:wrap;gap:22px 34px">
@@ -1972,6 +1996,7 @@ function mountMw() {
 CARDS.money = [
   {
     id: "gdp",
+    guess: { type: "choice", q: "Guess first: if Denmark were one of the 50 U.S. states, where would it rank by output per person?", opts: ["In the top 10", "Around 20th", "Around 35th", "In the bottom 5"], answer: 2, hint: "Rank 1 is the state that produces the most per person." },
     q: "Which country is richer?",
     stage: true, viz: gdpViz, mount: mountGdp,
     answer: `The U.S. produces about <strong>17% more per person</strong>, or 8% more once you allow for prices. As a state, Denmark would rank only <strong>36th of 50</strong>.`,
@@ -2019,6 +2044,7 @@ CARDS.money = [
   },
   {
     id: "minwage",
+    guess: { type: "choice", q: "Guess first: who sets the lowest pay a worker in Denmark can get?", opts: ["Unions and employers", "Parliament, in a law", "The government, each year", "Each local council"], answer: 0 },
     q: "What’s the lowest legal pay?",
     stage: true, viz: mwViz, mount: mountMw,
     answer: `Denmark has <strong>no minimum wage law</strong>. The U.S. federal minimum has been <strong>$7.25 an hour</strong> since 2009, and prices have risen a lot since then.`,
@@ -2216,6 +2242,7 @@ function mountIns() {
 CARDS.health = [
   {
     id: "life",
+    guess: { type: "choice", q: "Guess first: in 2000, who could expect to live longer, Danes or Americans?", opts: ["Danes, by about 5 years", "About the same", "Americans, by about 5 years"], answer: 1 },
     q: "Who lives longer?",
     stage: true, viz: leViz, mount: mountLe,
     answer: `Danes do, by about <strong>3.4 years</strong>. But for twenty years, from the early 1980s, Americans lived <strong>as long as or slightly longer</strong> than Danes.`,
@@ -2408,6 +2435,7 @@ CARDS.society = [
   },
   {
     id: "homicide",
+    guess: { type: "choice", q: "Guess first: leave out every killing with a gun. Is the U.S. homicide rate then higher or lower than Denmark’s?", opts: ["Higher", "About the same", "Lower"], answer: 0 },
     q: "How often are people killed?",
     stage: true, viz: homViz, mount: mountHom,
     answer: `An American is about <strong>7 times</strong> as likely as a Dane to be killed by another person. Even leaving out killings with a gun, the U.S. rate is <strong>higher</strong> than Denmark’s total.`,
@@ -2802,6 +2830,7 @@ CARDS.politics = [
   },
   {
     id: "abortion",
+    guess: { type: "choice", q: "Guess first: how late in a pregnancy do the least strict U.S. states allow abortion?", opts: ["12 weeks", "18 weeks", "24 weeks", "No limit"], answer: 3, hint: "In Denmark, abortion on request is allowed up to 18 weeks." },
     q: "Is abortion legal?",
     stage: true, viz: abortViz, mount: mountAbort,
     answer: `In <strong>1973</strong>, abortion became a right in both countries: Denmark allowed it on request, and the U.S. Supreme Court made it a right in every state. Denmark still allows it on request, now up to <strong>18 weeks</strong>. In the U.S., the national right ended in 2022: today <strong>13 states</strong> ban almost all abortions, while others allow them later than Denmark does.`,
@@ -3049,6 +3078,7 @@ CARDS.military = [
   },
   {
     id: "rearm",
+    guess: { type: "choice", q: "Guess first: in 2025, which country spent the larger share of its economy on defense?", opts: ["The U.S., by far", "The U.S., a little", "Denmark, a little", "Denmark, by far"], answer: 2, hint: "In 2014, the U.S. spent 3.7% of its economy on defense and Denmark 1.2%." },
     q: "How fast is Denmark arming?",
     stage: true, viz: rearmViz, mount: mountRearm,
     answer: `In 2014, Denmark spent <strong>1.2%</strong> of its economy on defense, the U.S. <strong>3.7%</strong>. By 2025, NATO estimated Denmark at <strong>3.3%</strong>, slightly more than the U.S. at <strong>3.2%</strong>. Adjusted for inflation, Danish defense spending more than tripled.`,
@@ -3192,6 +3222,9 @@ function paintSnd() { document.querySelectorAll(".snd").forEach(b => { b.setAttr
 const app = document.getElementById("app");
 const state = { theme: null, idx: 0, revealed: {}, guesses: {}, quiz: null, dir: 1 };
 try { const ss = JSON.parse(sessionStorage.getItem("dkus-sess") || "null"); if (ss) { state.revealed = ss.revealed || {}; state.guesses = ss.guesses || {}; } } catch (e) {}
+let FIRST = {};
+try { FIRST = JSON.parse(localStorage.getItem("dkus-first") || "{}") || {}; } catch (e) {}
+function keepFirst(c) { if (c && c.guess && state.revealed[c.id] && state.guesses[c.id] != null && FIRST[c.id] == null) { FIRST[c.id] = state.guesses[c.id]; try { localStorage.setItem("dkus-first", JSON.stringify(FIRST)); } catch (e) {} } }
 function saveSess() { try { sessionStorage.setItem("dkus-sess", JSON.stringify({ revealed: state.revealed, guesses: state.guesses })); } catch (e) {} }
 let best = null;
 try { best = localStorage.getItem("dkus-best2"); } catch (e) {}
@@ -3207,9 +3240,9 @@ const FRESH = new Set();
 const sealSVG = id => '<svg viewBox="0 0 100 100"><defs><path id="seal-' + id + '" d="M19.5 50a30.5 30.5 0 1 1 61 0a30.5 30.5 0 1 1-61 0"/></defs><circle class="rg" cx="50" cy="50" r="46.5" stroke-width="3.2"/><circle class="rg" cx="50" cy="50" r="42.3" stroke-width="1.2"/><circle class="rg" cx="50" cy="50" r="25" stroke-width="2.2"/><text class="st"><textPath href="#seal-' + id + '" textLength="186" lengthAdjust="spacing">EXPLORED • EXPLORED •</textPath></text><path class="ck" d="M38.5 50.5l8 8L62.5 42"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function resetAll() {
-  DONE.clear(); FRESH.clear(); best = null; QH = {};
+  DONE.clear(); FRESH.clear(); best = null; QH = {}; FIRST = {};
   state.revealed = {}; state.guesses = {}; state.quiz = null; state.theme = null; state.idx = 0;
-  try { localStorage.removeItem("dkus-done"); localStorage.removeItem("dkus-best2"); localStorage.removeItem("dkus-qhist"); sessionStorage.removeItem("dkus-sess"); } catch (e) {}
+  try { localStorage.removeItem("dkus-done"); localStorage.removeItem("dkus-best2"); localStorage.removeItem("dkus-qhist"); localStorage.removeItem("dkus-first"); sessionStorage.removeItem("dkus-sess"); } catch (e) {}
   SND.play("swipe");
   home();
   window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
@@ -3248,6 +3281,7 @@ function home() {
         <span class="tile-body"><span class="h3">Quiz</span><span class="p">${quizLen()} questions from all the themes</span>
         <span class="tile-foot"><span>${quizKnown() ? `${quizKnown()} of ${quizPool().length} correct` : best ? `Your best: ${best}` : "Test yourself"}</span><span class="go" aria-hidden="true">→</span></span></span></button>
     </div>
+    ${nGuessed() >= 3 ? `<button class="wyt-go" data-go="guesses"><span class="h3">What you thought</span><span class="p">You have guessed on ${nGuessed()} of ${guessCards().length} cards. See how close you were.</span><span class="go" aria-hidden="true">→</span></button>` : ""}
     ${soon.length ? `<p class="label" style="margin:22px 0 0">Coming next</p>
     <div class="soonlist">${soon.map(t => `<div class="soonitem" style="--tc:${t.color}"><span class="h3">${t.name}</span><span class="p">${t.teaser}</span></div>`).join("")}</div>` : `<div style="height:26px"></div>`}
     <footer class="foot"><span>Data checked ${CHECKED}. Every figure links to its source.</span><button class="linkbtn" data-go="sources">All sources and photo credits</button></footer>
@@ -3351,6 +3385,7 @@ function deck() {
     </div></nav></div>`;
   wireDeck();
   try { history.replaceState(history.state, "", "#" + state.theme + (state.idx ? "/" + state.idx : "")); } catch (e) {}
+  keepFirst(cards[i]);
   saveSess();
   focusQ();
 }
@@ -3538,11 +3573,12 @@ function quizEnd() {
     <p class="answer">${(() => { const N = quizPool().length, m = quizKnown(); return m >= N ? `You have now answered all ${N} questions correctly.` : `You have now answered ${m} of the ${N} questions correctly. The next round brings back the ones you missed.`; })()}</p>
     <div class="qcover" role="img" aria-label="${quizKnown()} of ${quizPool().length} questions answered correctly">${quizPool().map(i => `<i class="${QH[qKey(i)] === 1 ? "on" : QH[qKey(i)] === 0 ? "miss" : ""}"></i>`).join("")}</div>
     <p class="qcover-cap" aria-hidden="true">One dot per question. Black: correct. <b>Red: missed last time.</b> Empty: not asked yet.</p>
-    <div class="actions"><button class="primary" data-again>Try again</button><button class="chipbtn" data-home>All themes</button></div>
+    <div class="actions"><button class="primary" data-again>Try again</button>${nGuessed() >= 3 ? `<button class="chipbtn" data-go="guesses">What you thought</button>` : `<button class="chipbtn" data-home>All themes</button>`}</div>
     <p class="label" style="margin:8px 0 0">Your answers</p>
     <ol class="review">${(Q.log || []).map(([qi, pk]) => { const it = QUIZ[qi], ok = pk === it.a; return `<li class="${ok ? "ok" : "no"}"><span class="rq"><span class="mk" aria-label="${ok ? "Correct" : "Incorrect"}">${ok ? "✓" : "✗"}</span>${it.q}</span><span class="ra">${ok ? "" : `Your answer: ${it.opts[pk].replace(/\.$/, "")}. `}${ok ? "Answer" : "Correct answer"}: <strong>${it.opts[it.a].replace(/\.$/, "")}</strong></span>${ok ? "" : `<span class="rw">${it.why}</span>`}${ok ? "" : `<button class="linkbtn" data-card="${it.card.join(",")}">Open the card →</button>`}</li>`; }).join("")}</ol>
   </article></main></div>`;
   app.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => go("home")));
+  app.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
   app.querySelector("[data-again]").addEventListener("click", () => { startQuiz(); quiz(); window.scrollTo({ top: 0 }); });
   app.querySelectorAll("[data-card]").forEach(b => b.addEventListener("click", e => { const [t, i] = e.currentTarget.dataset.card.split(","); state.theme = t; state.idx = +i; state.revealed[CARDS[t][+i].id] = true; location.hash = t; route(); window.scrollTo({ top: 0 }); }));
 }
@@ -3588,6 +3624,63 @@ function sources() {
   app.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => go("home")));
 }
 
+/* ---------- What you thought ---------- */
+// one numeric reading per custom guess, so all guesses can be compared with the real figure
+const GNUM = {
+  unions: { v: v => v.end, real: 9.9, max: 100, unit: "in 100", you: v => fmt(v.end), r: "9.9" },
+  spend: { v: v => v.sp, real: 13473, max: 20000, unit: "dollars per person", you: v => "$" + fmt(Math.round(v.sp / 100) * 100), r: "$13,473" },
+  religion: { v: v => v, real: 37, max: 100, unit: "in 100", you: v => fmt(v), r: "37" },
+  milspend: { v: v => v, real: 33, max: 100, unit: "of every $100", you: v => "$" + fmt(v), r: "$33" },
+};
+function guessCards() { const out = []; THEMES.filter(t => t.ready).forEach(t => CARDS[t.id].forEach((c, i) => { if (c.guess) out.push({ c, t, i }); })); return out; }
+function nGuessed() { return guessCards().filter(x => FIRST[x.c.id] != null).length; }
+function judge(c, v) {
+  const g = c.guess;
+  if (g.type === "choice") return { kind: "choice", close: v === g.answer, err: Math.abs(v - g.answer) / (g.opts.length - 1), you: g.opts[v], real: g.opts[g.answer], opts: g.opts, v, a: g.answer };
+  if (g.type === "custom") {
+    const m = GNUM[c.id]; if (!m) return null;
+    const x = m.v(v), err = Math.abs(x - m.real) / m.real;
+    return { kind: "scale", close: err <= .2, err, you: m.you(v), real: m.r, x, a: m.real, min: 0, max: m.max, unit: m.unit };
+  }
+  const err = Math.abs(v - g.answer) / g.answer;
+  return { kind: "scale", close: err <= .2, err, you: fmt(v), real: fmt(g.answer, g.dec ?? 1), x: v, a: g.answer, min: g.min, max: g.max, unit: g.unit };
+}
+const gq = c => c.guess.type === "custom" ? c.q : c.guess.q.replace(/^Guess first:\s*(.)/, (m, ch) => ch.toUpperCase());
+function guessRow({ c, t, i }, j) {
+  const pos = x => Math.max(0, Math.min(100, (x - j.min) / (j.max - j.min) * 100)).toFixed(1);
+  const vis = j.kind === "scale"
+    ? `<div class="wyt-scale" aria-hidden="true"><i class="wyt-track"></i><i class="wyt-real" style="left:${pos(j.a)}%"></i><i class="wyt-you" style="left:${pos(j.x)}%"></i></div>`
+    : `<div class="wyt-opts" aria-hidden="true">${j.opts.map((o, k) => `<span class="${k === j.a ? "real" : ""}${k === j.v ? " you" : ""}">${o}</span>`).join("")}</div>`;
+  return `<li class="${j.close ? "ok" : "no"}" style="--tc:${t.color}">
+    <span class="wyt-q"><i class="wyt-dot" aria-hidden="true"></i>${gq(c)}</span>
+    <span class="wyt-ya">You: <strong>${j.you}</strong>${j.kind === "choice" && j.close ? " (correct)" : ` · Answer: <strong>${j.real}</strong>`}</span>
+    ${vis}
+    <button class="linkbtn" data-card="${t.id},${i}">Open the card →</button></li>`;
+}
+function guessesView() {
+  cleanup();
+  document.title = "What you thought · Denmark vs. the U.S.";
+  const all = guessCards(), made = all.filter(x => FIRST[x.c.id] != null).map(x => ({ ...x, j: judge(x.c, FIRST[x.c.id]) })).filter(x => x.j);
+  const off = made.filter(x => !x.j.close).sort((a, b) => b.j.err - a.j.err), near = made.filter(x => x.j.close);
+  const todo = all.filter(x => FIRST[x.c.id] == null);
+  app.innerHTML = `<div class="page dark" style="--theme:var(--ink)">` + bar("Your guesses", `${made.length} / ${all.length}`, all.length ? made.length / all.length * 100 : 0) + `
+  <main class="deckmain wrap"><article class="card wyt">
+    <header class="qhead"><h2 class="q">What you thought</h2></header>
+    <p class="answer">${made.length ? `Your first guesses on ${made.length} of ${all.length} cards: close on ${near.length}, off on ${off.length}.` : "You haven’t guessed on any card yet."}</p>
+    <p class="context">Each line shows your first guess, before you saw the answer. On a scale, the hollow mark is your guess and the black mark is the answer. A guess within a fifth of the answer counts as close.</p>
+    ${off.length ? `<p class="label">Where you were off, furthest first</p><ol class="review wytl">${off.map(x => guessRow(x, x.j)).join("")}</ol>` : ""}
+    ${near.length ? `<p class="label">Where you were close</p><ol class="review wytl">${near.map(x => guessRow(x, x.j)).join("")}</ol>` : ""}
+    ${todo.length ? `<p class="label">Not guessed yet</p><ul class="wyt-todo">${todo.map(({ c, t, i }) => `<li style="--tc:${t.color}"><button class="linkbtn" data-open="${t.id},${i}"><i class="wyt-dot" aria-hidden="true"></i><span>${c.q}</span><span aria-hidden="true">→</span></button></li>`).join("")}</ul>` : ""}
+    <div class="actions"><button class="primary" data-go="quiz">Take the quiz&nbsp;→</button><button class="chipbtn" data-home>All themes</button></div>
+  </article></main></div>`;
+  app.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => go("home")));
+  app.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+  const open = (t, i, rev) => { state.theme = t; state.idx = +i; if (rev) state.revealed[CARDS[t][+i].id] = true; else delete state.revealed[CARDS[t][+i].id]; state.dir = 1; location.hash = t; route(); window.scrollTo({ top: 0 }); };
+  app.querySelectorAll("[data-card]").forEach(b => b.addEventListener("click", () => { const [t, i] = b.dataset.card.split(","); open(t, i, true); }));
+  app.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { const [t, i] = b.dataset.open.split(","); open(t, i, false); }));
+  focusQ();
+}
+
 /* ---------- Router ---------- */
 function go(where) {
   if (where === "quiz") { startQuiz(); }
@@ -3603,6 +3696,7 @@ function route() {
   }
   else if (h === "quiz") quiz();
   else if (h === "sources") sources();
+  else if (h === "guesses") guessesView();
   else home();
 }
 window.addEventListener("hashchange", route);
