@@ -547,6 +547,13 @@ input[type=range].scrub { width: 100%; accent-color: var(--ink); height: 28px; }
 .big .unit { font-size: .36em; letter-spacing: 0; font-weight: 700; margin-left: 4px; }
 .big.dk .unit { color: var(--dk-text); }
 svg.chart text.tk-off { visibility: hidden; }
+/* v26: quiz coverage strip (one mark per question: filled = correct last time, crossed = missed last time) */
+.qcover { display: flex; flex-wrap: wrap; gap: 5px; margin: -6px 0 22px; max-width: 520px; }
+.qcover i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); box-sizing: border-box; }
+.qcover i.on { background: var(--ink); }
+.qcover i.miss { border-color: var(--dk-text); background: #FFD9CF; }
+.qcover-cap { margin: -14px 0 22px; font-size: 13px; color: var(--muted); }
+.qcover-cap b { color: var(--dk-text); font-weight: 700; }
 /* review v24 fixes */
 .navbtn { white-space: nowrap; }
 @media (max-width: 380px) { .sk-w { display: none; } .navbtn { min-width: 86px; padding-inline: 14px; } .nav .wrap { gap: 8px; } }
@@ -3188,15 +3195,21 @@ try { const ss = JSON.parse(sessionStorage.getItem("dkus-sess") || "null"); if (
 function saveSess() { try { sessionStorage.setItem("dkus-sess", JSON.stringify({ revealed: state.revealed, guesses: state.guesses })); } catch (e) {} }
 let best = null;
 try { best = localStorage.getItem("dkus-best2"); } catch (e) {}
+// quiz history, keyed by question text: 1 = answered correctly the last time, 0 = missed the last time
+let QH = {};
+try { QH = JSON.parse(localStorage.getItem("dkus-qhist") || "{}") || {}; } catch (e) {}
+function saveQH() { try { localStorage.setItem("dkus-qhist", JSON.stringify(QH)); } catch (e) {} }
+const qKey = i => QUIZ[i].q;
+function quizKnown() { return quizPool().filter(i => QH[qKey(i)] === 1).length; }
 const DONE = new Set();
 try { (JSON.parse(localStorage.getItem("dkus-done") || "[]")).forEach(x => DONE.add(x)); } catch (e) {}
 const FRESH = new Set();
 const sealSVG = id => '<svg viewBox="0 0 100 100"><defs><path id="seal-' + id + '" d="M19.5 50a30.5 30.5 0 1 1 61 0a30.5 30.5 0 1 1-61 0"/></defs><circle class="rg" cx="50" cy="50" r="46.5" stroke-width="3.2"/><circle class="rg" cx="50" cy="50" r="42.3" stroke-width="1.2"/><circle class="rg" cx="50" cy="50" r="25" stroke-width="2.2"/><text class="st"><textPath href="#seal-' + id + '" textLength="186" lengthAdjust="spacing">EXPLORED • EXPLORED •</textPath></text><path class="ck" d="M38.5 50.5l8 8L62.5 42"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function resetAll() {
-  DONE.clear(); FRESH.clear(); best = null;
+  DONE.clear(); FRESH.clear(); best = null; QH = {};
   state.revealed = {}; state.guesses = {}; state.quiz = null; state.theme = null; state.idx = 0;
-  try { localStorage.removeItem("dkus-done"); localStorage.removeItem("dkus-best2"); sessionStorage.removeItem("dkus-sess"); } catch (e) {}
+  try { localStorage.removeItem("dkus-done"); localStorage.removeItem("dkus-best2"); localStorage.removeItem("dkus-qhist"); sessionStorage.removeItem("dkus-sess"); } catch (e) {}
   SND.play("swipe");
   home();
   window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
@@ -3233,7 +3246,7 @@ function home() {
         <span class="tile-foot"><span>${DONE.has(t.id) ? `<span class="xc">Explored</span> · ` : ""}${CARDS[t.id].length} cards</span><span class="go" aria-hidden="true">→</span></span></span></button>`).join("")}
       <button class="tile quiz ph" data-go="quiz"><span class="tile-photo qart" aria-hidden="true"><span class="qdots">${Array.from({ length: quizLen() }, (_, i) => `<i class="${best && i < +best.split("/")[0] ? "on" : ""}"></i>`).join("")}</span></span>
         <span class="tile-body"><span class="h3">Quiz</span><span class="p">${quizLen()} questions from all the themes</span>
-        <span class="tile-foot"><span>${best ? `Your best: ${best}` : "Test yourself"}</span><span class="go" aria-hidden="true">→</span></span></span></button>
+        <span class="tile-foot"><span>${quizKnown() ? `${quizKnown()} of ${quizPool().length} correct` : best ? `Your best: ${best}` : "Test yourself"}</span><span class="go" aria-hidden="true">→</span></span></span></button>
     </div>
     ${soon.length ? `<p class="label" style="margin:22px 0 0">Coming next</p>
     <div class="soonlist">${soon.map(t => `<div class="soonitem" style="--tc:${t.color}"><span class="h3">${t.name}</span><span class="p">${t.teaser}</span></div>`).join("")}</div>` : `<div style="height:26px"></div>`}
@@ -3333,8 +3346,8 @@ function deck() {
     `<main class="deckmain wrap">${end ? endCard(theme, justNow) : cardHTML(cards[i])}</main>
     <nav class="nav" aria-label="Cards"><div class="wrap">
       <button class="navbtn" data-prev ${i === 0 ? "disabled" : ""}>← Back</button>
-      <div class="pips">${cards.map((c, k) => `<button aria-label="Card ${k + 1}" ${k === i ? 'aria-current="true"' : ""} data-pip="${k}"></button>`).join("")}</div>
-      <button class="navbtn next" data-next ${end ? "disabled" : ""}>${skip ? `Skip<span class="sk-w"> guess</span>` : i === n - 1 ? "Finish" : "Next →"}</button>
+      ${end ? "" : `<div class="pips">${cards.map((c, k) => `<button aria-label="Card ${k + 1}" ${k === i ? 'aria-current="true"' : ""} data-pip="${k}"></button>`).join("")}</div>
+      <button class="navbtn next" data-next>${skip ? `Skip<span class="sk-w"> guess</span>` : i === n - 1 ? "Finish" : "Next →"}</button>`}
     </div></nav></div>`;
   wireDeck();
   try { history.replaceState(history.state, "", "#" + state.theme + (state.idx ? "/" + state.idx : "")); } catch (e) {}
@@ -3383,7 +3396,7 @@ function cardHTML(c) {
   if (c.guess && state.guesses[c.id] != null) {
     const g = c.guess, v = state.guesses[c.id];
     yg = g.type === "custom" ? (g.yours ? `<p class="yourguess">${g.yours(v)}</p>` : "") : g.type === "choice"
-      ? `<p class="yourguess">You guessed <strong>${g.opts[v]}</strong>. ${v === g.answer ? "Right." : `The answer: <strong>${g.opts[g.answer]}</strong>.`}</p>`
+      ? `<p class="yourguess">You guessed <strong>${g.opts[v]}</strong>. ${v === g.answer ? "Correct." : `The answer: <strong>${g.opts[g.answer]}</strong>.`}</p>`
       : `<p class="yourguess">You guessed <strong>${v}</strong>. The answer is <strong>${fmt(g.answer, g.dec ?? 1)}</strong> ${g.unit}.</p>`;
   }
   return `<article class="card full ${dirCls}">
@@ -3475,12 +3488,18 @@ function step(d) {
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function quizPool() { const ok = new Set(THEMES.filter(t => t.ready).map(t => t.id)); return QUIZ.map((q, i) => i).filter(i => ok.has(QUIZ[i].card[0])); }
 function quizLen() { return Math.min(10, quizPool().length); }
+// spread questions across themes: shuffle within each theme, then deal round-robin
+function dealByTheme(list) {
+  const by = {}; shuffle(list).forEach(i => (by[QUIZ[i].card[0]] ||= []).push(i));
+  const out = [], keys = shuffle(Object.keys(by)); let more = true;
+  while (more) { more = false; keys.forEach(k => { const x = by[k].shift(); if (x != null) { out.push(x); more = true; } }); }
+  return out;
+}
 function startQuiz() {
-  // spread questions across themes: shuffle within each theme, then deal round-robin
-  const by = {}; shuffle(quizPool()).forEach(i => (by[QUIZ[i].card[0]] ||= []).push(i));
-  const order = []; const keys = shuffle(Object.keys(by));
-  while (order.length < quizLen()) keys.forEach(k => { const x = by[k].shift(); if (x != null && order.length < quizLen()) order.push(x); });
-  state.quiz = { order, k: 0, score: 0, picked: null };
+  // questions missed last time come back first, then ones not yet seen, then ones already answered correctly
+  const pool = quizPool(), h = i => QH[qKey(i)];
+  const pick = [...dealByTheme(pool.filter(i => h(i) === 0)), ...dealByTheme(pool.filter(i => h(i) == null)), ...dealByTheme(pool.filter(i => h(i) === 1))].slice(0, quizLen());
+  state.quiz = { order: dealByTheme(pick), k: 0, score: 0, picked: null };
 }
 function quiz() {
   cleanup();
@@ -3498,14 +3517,14 @@ function quiz() {
       return `<button class="opt ${cls}" data-opt="${i}" ${done ? "disabled" : ""}><span>${o}</span><span aria-hidden="true">${done && i === item.a ? "✓" : done && i === Q.picked ? "✗" : ""}</span></button>`;
     }).join("")}</div>
     ${done ? `<div class="feedback" aria-live="polite">
-      <p class="verdict ${Q.picked === item.a ? "ok" : "no"}">${Q.picked === item.a ? "Right." : "Not quite."}</p>
-      <p class="qscore">${Q.score} of ${Q.k + 1} right so far</p>
+      <p class="verdict ${Q.picked === item.a ? "ok" : "no"}">${Q.picked === item.a ? "Correct." : "Incorrect."}</p>
+      <p class="qscore">${Q.score} of ${Q.k + 1} correct so far</p>
       <p class="context" style="color:var(--ink)">${item.why}</p>
       <div class="actions"><button class="primary" data-qnext>${Q.k === n - 1 ? "See your score" : "Next question →"}</button>
       <button class="chipbtn" data-card="${item.card.join(",")}">Open the card</button></div></div>` : ""}
   </article></main></div>`;
   app.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => go("home")));
-  app.querySelectorAll("[data-opt]").forEach(b => b.addEventListener("click", () => { Q.picked = +b.dataset.opt; SND.play(Q.picked === item.a ? "right" : "wrong"); if (Q.picked === item.a) Q.score++; (Q.log ||= []).push([Q.order[Q.k], Q.picked]); quiz(); }));
+  app.querySelectorAll("[data-opt]").forEach(b => b.addEventListener("click", () => { Q.picked = +b.dataset.opt; SND.play(Q.picked === item.a ? "right" : "wrong"); if (Q.picked === item.a) Q.score++; (Q.log ||= []).push([Q.order[Q.k], Q.picked]); QH[qKey(Q.order[Q.k])] = Q.picked === item.a ? 1 : 0; saveQH(); quiz(); }));
   app.querySelector("[data-qnext]")?.addEventListener("click", () => { if (Q.k + 1 >= n) SND.play(Q.score === n ? "perfect" : Q.score >= n * .6 ? "win" : "soft"); Q.k++; Q.picked = null; quiz(); window.scrollTo({ top: 0 }); });
   app.querySelector("[data-card]")?.addEventListener("click", e => { const [t, i] = e.currentTarget.dataset.card.split(","); state.theme = t; state.idx = +i; state.revealed[CARDS[t][+i].id] = true; location.hash = t; route(); });
   if (!done) focusQ(); else app.querySelector("[data-qnext]")?.focus({ preventScroll: true });
@@ -3516,10 +3535,12 @@ function quizEnd() {
   app.innerHTML = `<div class="page dark" style="--theme:var(--ink)">` + bar("Test yourself", "Done", 100) + `
   <main class="deckmain wrap"><article class="card endcard">
     <header class="qhead"><span class="label">Your score</span><p class="score num" style="margin:0">${Q.score}<span style="font-size:.4em">/${n}</span></p></header>
-    <p class="answer">${Q.score === n ? "Perfect. You really know the U.S." : Q.score >= n * .6 ? "Good. A few surprises left." : "The cards are worth another look."} Each round draws new questions.</p>
+    <p class="answer">${(() => { const N = quizPool().length, m = quizKnown(); return m >= N ? `You have now answered all ${N} questions correctly.` : `You have now answered ${m} of the ${N} questions correctly. The next round brings back the ones you missed.`; })()}</p>
+    <div class="qcover" role="img" aria-label="${quizKnown()} of ${quizPool().length} questions answered correctly">${quizPool().map(i => `<i class="${QH[qKey(i)] === 1 ? "on" : QH[qKey(i)] === 0 ? "miss" : ""}"></i>`).join("")}</div>
+    <p class="qcover-cap" aria-hidden="true">One dot per question. Black: correct. <b>Red: missed last time.</b> Empty: not asked yet.</p>
     <div class="actions"><button class="primary" data-again>Try again</button><button class="chipbtn" data-home>All themes</button></div>
     <p class="label" style="margin:8px 0 0">Your answers</p>
-    <ol class="review">${(Q.log || []).map(([qi, pk]) => { const it = QUIZ[qi], ok = pk === it.a; return `<li class="${ok ? "ok" : "no"}"><span class="rq"><span class="mk" aria-label="${ok ? "Right" : "Wrong"}">${ok ? "✓" : "✗"}</span>${it.q}</span><span class="ra">${ok ? "" : `Your answer: ${it.opts[pk].replace(/\.$/, "")}. `}${ok ? "Answer" : "Right answer"}: <strong>${it.opts[it.a].replace(/\.$/, "")}</strong></span>${ok ? "" : `<span class="rw">${it.why}</span>`}${ok ? "" : `<button class="linkbtn" data-card="${it.card.join(",")}">Open the card →</button>`}</li>`; }).join("")}</ol>
+    <ol class="review">${(Q.log || []).map(([qi, pk]) => { const it = QUIZ[qi], ok = pk === it.a; return `<li class="${ok ? "ok" : "no"}"><span class="rq"><span class="mk" aria-label="${ok ? "Correct" : "Incorrect"}">${ok ? "✓" : "✗"}</span>${it.q}</span><span class="ra">${ok ? "" : `Your answer: ${it.opts[pk].replace(/\.$/, "")}. `}${ok ? "Answer" : "Correct answer"}: <strong>${it.opts[it.a].replace(/\.$/, "")}</strong></span>${ok ? "" : `<span class="rw">${it.why}</span>`}${ok ? "" : `<button class="linkbtn" data-card="${it.card.join(",")}">Open the card →</button>`}</li>`; }).join("")}</ol>
   </article></main></div>`;
   app.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => go("home")));
   app.querySelector("[data-again]").addEventListener("click", () => { startQuiz(); quiz(); window.scrollTo({ top: 0 }); });
